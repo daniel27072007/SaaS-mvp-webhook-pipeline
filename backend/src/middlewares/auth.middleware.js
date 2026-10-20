@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
 
-export const authMiddleware = (allowedRoles) => {
+export const authMiddleware = (allowedSubscription) => {
     return async (req, res, next) => {
         const authHeaders = req.headers['authorization']
         const accessToken = authHeaders ? authHeaders.split(' ',)[1] : undefined
@@ -10,8 +10,8 @@ export const authMiddleware = (allowedRoles) => {
         try {
             const decoded = jwt.verify(accessToken, process.env.TOKEN_ACCESS_KEY)
             req.userId = decoded.userId
-            req.userRole = decoded.userRole
-            if(!allowedRoles.includes(req.userRole)){
+            req.userSubscription = decoded.userSubscription
+            if(!allowedSubscription.includes(req.userSubscription)){
                 return res.status(403).json({ message: 'Forbidden' })
             }
             next()
