@@ -1,9 +1,7 @@
 import { userModel } from '../models/user.model.js'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-import express from 'express'
 import 'dotenv/config'
-import mongoose from 'mongoose'
 
 export const registerUser = async (req, res) => {
     try {
@@ -11,28 +9,27 @@ export const registerUser = async (req, res) => {
         if(!registerData.name || !registerData.email || !registerData.password){
             return res.status(400).json({ error: 'Bad Request', message: 'name, email and password are required.'})
         }
-        if(registerData.role !== 'admin' && registerData.role !== 'employee' && registerData.role !== 'customer'){
-            return res.status(400).json({ error: 'Bad Request', message: 'you can only input admin, employee or customer'})
+        if(registerData.subscription !== 'premium' && registerData.subscription !== 'normal' && registerData.subscription !== 'none'){
+            return res.status(400).json({ error: 'Bad Request', message: 'you can only input premium, normal or none'})
         }
         const userData = {
             name: registerData.name,
             email: registerData.email,
-            role: registerData.role,
-            password: registerData.password
+            password: registerData.password,
+            subscription: registerData.subscription,
+            subscriptionStatus: registerData.subscriptionStatus,
+            paymentCustomerId: registerData.paymentCustomerId
         }
         const registeredUser = new userModel(userData)
         const savedUser = await registeredUser.save()
         const tokenAccess = jwt.sign(
-            {userId: savedUser._id, userRole: savedUser.role},
+            {userId: savedUser._id, userSubscription: savedUser.subscription},
             process.env.TOKEN_ACCESS_KEY,
             {expiresIn: process.env.TOKEN_ACCESS_EXPIRES}
         )
         return res.status(201).json({ message: 'User registered with success!', 'access-token': tokenAccess})
     } catch (error) {
         if(error.code === 11000){
-            if(error.message.includes('name')){
-                return res.status(400).json({ error: 'Bad Request', message: 'This name was already registered' })
-            }
             if(error.message.includes('email')){
                 return res.status(400).json({ error: 'Bad Request', message: 'This email was already registered' })
             }
@@ -56,11 +53,11 @@ export const loginUser = async (req, res) => {
             return res.status(401).json({ error: 'Invalid Email or Password.' });         
         }
         const tokenAccess = jwt.sign(
-            {userId: loggedUser._id, userRole: loggedUser.role},
+            {userId: loggedUser._id, userSubscription: loggedUser.subscription},
             process.env.TOKEN_ACCESS_KEY,
             {expiresIn: process.env.TOKEN_ACCESS_EXPIRES}
         )
-        return res.status(201).json({ message: 'User logged with success!', 'access-token': tokenAccess})
+        return res.status(200).json({ message: 'User logged with success!', 'access-token': tokenAccess})
     } catch (error) {
         if(error.name === "ValidationError"){
             return res.status(400).json({ error: 'Bad Request', message: error.message})
