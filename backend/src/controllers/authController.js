@@ -6,8 +6,11 @@ import 'dotenv/config'
 export const registerUser = async (req, res) => {
     try {
         const registerData = req.body
-        if(!registerData.name || !registerData.email || !registerData.password || !registerData.subscription){
-            return res.status(400).json({ error: 'Bad Request', message: 'name, email, password and subscription are required.'})
+        if(!registerData.subscription){
+            registerData.subscription = "none"
+        }
+        if(!registerData.name || !registerData.email || !registerData.password){
+            return res.status(400).json({ error: 'Bad Request', message: 'name, email and password are required.'})
         }
         if(registerData.subscription !== 'premium' && registerData.subscription !== 'normal' && registerData.subscription !== 'none'){
             return res.status(400).json({ error: 'Bad Request', message: 'you can only input premium, normal or none'})

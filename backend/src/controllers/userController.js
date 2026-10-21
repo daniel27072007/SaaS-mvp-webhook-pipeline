@@ -1,6 +1,5 @@
 import { userModel } from '../models/user.model.js'
 import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
 import 'dotenv/config'
 
 export const getProfile = async (req, res) => {

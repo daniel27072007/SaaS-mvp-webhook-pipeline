@@ -1,6 +1,7 @@
 import express from 'express'
 import authRouter from './routes/auth.routes.js'
 import userRouter from './routes/user.routes.js'
+import featuresRouter from './routes/features.routes.js'
 
 const app = express()
 
@@ -9,6 +10,8 @@ app.use(express.json())
 app.use(authRouter)
 
 app.use(userRouter)
+
+app.use(featuresRouter)
 
 app.use((error, req, res, next)=>{
     console.error('Unexpected server error', error.stack)
