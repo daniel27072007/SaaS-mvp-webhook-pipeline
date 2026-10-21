@@ -46,7 +46,7 @@ export const loginUser = async (req, res) => {
         }
         const loggedUser = await userModel.findOne({ email: loginData.email })
         if(!loggedUser){
-            return res.status(400).json({ error: 'email or password are invalid.'})
+            return res.status(400).json({ error: 'Invalid Email or Password.'})
         }
         const isPasswordValid = await bcrypt.compare(loginData.password, loggedUser.password)
         if(!isPasswordValid){
