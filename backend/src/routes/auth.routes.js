@@ -3,8 +3,8 @@ import { loginUser, registerUser } from "../controllers/authController.js";
 
 const authRouter = Router()
 
-authRouter.post('/register', registerUser)
+authRouter.post('/api/auth/register', registerUser)
 
-authRouter.post('/login', loginUser)
+authRouter.post('/api/auth/login', loginUser)
 
 export default authRouter
