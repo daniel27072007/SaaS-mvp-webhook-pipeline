@@ -6,8 +6,8 @@ import 'dotenv/config'
 export const registerUser = async (req, res) => {
     try {
         const registerData = req.body
-        if(!registerData.name || !registerData.email || !registerData.password){
-            return res.status(400).json({ error: 'Bad Request', message: 'name, email and password are required.'})
+        if(!registerData.name || !registerData.email || !registerData.password || !registerData.subscription){
+            return res.status(400).json({ error: 'Bad Request', message: 'name, email, password and subscription are required.'})
         }
         if(registerData.subscription !== 'premium' && registerData.subscription !== 'normal' && registerData.subscription !== 'none'){
             return res.status(400).json({ error: 'Bad Request', message: 'you can only input premium, normal or none'})
@@ -25,16 +25,25 @@ export const registerUser = async (req, res) => {
         const tokenAccess = jwt.sign(
             {userId: savedUser._id, userSubscription: savedUser.subscription},
             process.env.TOKEN_ACCESS_KEY,
-            {expiresIn: process.env.TOKEN_ACCESS_EXPIRES}
+            {expiresIn: process.env.TOKEN_ACCESS_KEY_EXPIRES}
         )
         return res.status(201).json({ message: 'User registered with success!', 'access-token': tokenAccess})
     } catch (error) {
-        if(error.code === 11000){
-            if(error.message.includes('email')){
-                return res.status(400).json({ error: 'Bad Request', message: 'This email was already registered' })
-            }
+        if (error.code === 11000) {
+        const isEmailDuplicated = error.message && error.message.includes('email');
+        const isKeyPatternEmail = error.keyPattern && error.keyPattern.email;
+        if (isEmailDuplicated || isKeyPatternEmail) {
+            return res.status(400).json({ 
+            error: 'Bad Request', 
+            message: 'This email was already registered' 
+            });
         }
-        res.status(500).json({ error: error, message: 'something wrong happend when registring the user'})
+        }
+        console.error("Registration Error:", error.message || error);
+        return res.status(500).json({ 
+        error: 'Internal Server Error', 
+        message: 'something wrong happened when registering the user' 
+        });
     }
 }
 
@@ -55,7 +64,7 @@ export const loginUser = async (req, res) => {
         const tokenAccess = jwt.sign(
             {userId: loggedUser._id, userSubscription: loggedUser.subscription},
             process.env.TOKEN_ACCESS_KEY,
-            {expiresIn: process.env.TOKEN_ACCESS_EXPIRES}
+            {expiresIn: process.env.TOKEN_ACCESS_KEY_EXPIRES}
         )
         return res.status(200).json({ message: 'User logged with success!', 'access-token': tokenAccess})
     } catch (error) {
