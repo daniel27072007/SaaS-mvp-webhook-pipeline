@@ -7,7 +7,8 @@ const userSchema = new mongoose.Schema({
     password: {type: String, required: true},
     subscription: {type: String, enum: ['premium', 'normal', 'none'], default: 'none'},
     subscriptionStatus: {type: String, enum: ['active', 'past_due', 'canceled', 'trialing', 'none'], default: 'none'},
-    paymentCustomerId: {type: String, default: null}
+    paymentCustomerId: {type: String, default: null},
+    stripeSubscriptionId: {type: String, default: null}
 },{
     timestamps: true
 })

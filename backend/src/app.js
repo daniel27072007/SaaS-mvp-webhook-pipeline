@@ -5,7 +5,13 @@ import featuresRouter from './routes/features.routes.js'
 
 const app = express()
 
-app.use(express.json())
+app.use(express.json({
+    verify: (req, res, buf) => {
+        if (req.originalUrl.startsWith('/api/payments/webhook')) {
+            req.rawBody = buf;
+        }
+    }
+}));
 
 app.use(authRouter)
 

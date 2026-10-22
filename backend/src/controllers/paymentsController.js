@@ -44,25 +44,37 @@ export const webhook = async (req, res) => {
             case 'checkout.session.completed': {
                 const session = event.data.object
                 const userId = session.metadata?.userId
-                const userSubscription = session.metadata?.userSubscription
+                const userSubscription = session.metadata?.userSubscription || 'none'
                 const stripeSubscriptionId = session.subscription
-                const databaseUser = await userModel.findOne({ _id: userId }).select(["subscription"])
+                const databaseUser = await userModel.findOne({ _id: userId }).select(["subscription", "subscriptionStatus", "stripeSubscriptionId"])
                 if(!databaseUser){
                     return res.status(400).json({ error: "User not found"}) //not 404 so stripe dosent think is a error 404 about him sending the req
                 }
                 databaseUser.subscription = userSubscription
+                databaseUser.subscriptionStatus = 'active'
+                databaseUser.stripeSubscriptionId = stripeSubscriptionId
                 await databaseUser.save()
                 break
             }
             
             case 'customer.subscription.deleted': {
                 const subscription = event.data.object;
-                console.log('subscription cancelled')
+                const stripeSubscriptionId = subscription.id;
+                const databaseUser = await userModel.findOne({ stripeSubscriptionId: stripeSubscriptionId }).select(["subscription", "subscriptionStatus", "stripeSubscriptionId"])
+                if (!databaseUser) {
+                    console.log(`Warning: Subscription ${stripeSubscriptionId} canceled, but the user was not found.`);
+                    break;
+                }
+                databaseUser.subscription = 'none'
+                databaseUser.subscriptionStatus = 'none'
+                databaseUser.stripeSubscriptionId = null
+                await databaseUser.save()
+                console.log(`User subscription ${databaseUser._id} was reseted with success to "none".`)
                 break
             }
 
             default:
-                console.log('another event recived:', event.type)
+                console.log('Another event recived:', event.type)
                 break;
         }
         return res.status(200).json({ received: true });
