@@ -13,12 +13,14 @@ export const checkout = async (req, res) => {
             });
         }
         const userId = req.userId
-        const userSubscription = req.userSubscription
+        let purchasedPlan = 'normal';
+        if (priceId === process.env.STRIPE_PREMIUM_PRICE) {
+            purchasedPlan = 'premium';
+        }
         const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
             mode: 'subscription',
             line_items: [{price: priceId, quantity: 1}],
-            metadata: { userId : userId, userSubscription: userSubscription },
+            metadata: { userId : userId, userSubscription: purchasedPlan },
             success_url: `http://localhost:5173/dashboard?success=true`,
             cancel_url: `http://localhost:5173/pricing?canceled=true`,
         })
@@ -34,7 +36,7 @@ export const webhook = async (req, res) => {
     const sig = req.headers['stripe-signature']
     let event
     try {
-        event = stripe.webhooks.constructEvent(req.body, sig, endPointSecret)
+        event = stripe.webhooks.constructEvent(req.rawBody, sig, endPointSecret)
     } catch (error) {
         console.error(`Validation Error in Webhook: ${error.message}`);
         return res.status(400).send(`Webhook Error: ${error.message}`);
