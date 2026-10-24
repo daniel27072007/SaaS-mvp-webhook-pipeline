@@ -14,8 +14,10 @@ export const checkout = async (req, res) => {
         }
         const userId = req.userId
         let purchasedPlan = 'normal';
+        console.log("Price recebido:", priceId, "Esperado Premium:", process.env.STRIPE_PREMIUM_PRICE)
         if (priceId === process.env.STRIPE_PREMIUM_PRICE) {
             purchasedPlan = 'premium';
+            console.log("premium")
         }
         const session = await stripe.checkout.sessions.create({
             mode: 'subscription',
