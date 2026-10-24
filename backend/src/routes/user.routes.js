@@ -6,6 +6,6 @@ const userRouter = Router()
 
 userRouter.get('/api/users/profile', authMiddleware(['none', 'normal', 'premium']), getProfile)
 
-userRouter.post('/api/users/profile', authMiddleware(['none', 'normal', 'premium']), updatePassaword)
+userRouter.put('/api/users/profile', authMiddleware(['none', 'normal', 'premium']), updatePassaword)
 
 export default userRouter
