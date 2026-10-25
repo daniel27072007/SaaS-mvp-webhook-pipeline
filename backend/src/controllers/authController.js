@@ -33,19 +33,23 @@ export const registerUser = async (req, res) => {
         return res.status(201).json({ message: 'User registered with success!', 'access-token': tokenAccess})
     } catch (error) {
         if (error.code === 11000) {
-        const isEmailDuplicated = error.message && error.message.includes('email');
-        const isKeyPatternEmail = error.keyPattern && error.keyPattern.email;
-        if (isEmailDuplicated || isKeyPatternEmail) {
+            // Se o erro incluir o campo 'name'
+            if (error.message && error.message.includes('name')) {
+                return res.status(400).json({ 
+                    error: 'Bad Request', 
+                    message: 'This username is already taken.' 
+                });
+            }
+            // Se for o e-mail ou qualquer outro padrão
             return res.status(400).json({ 
-            error: 'Bad Request', 
-            message: 'This email was already registered' 
+                error: 'Bad Request', 
+                message: 'This email was already registered.' 
             });
-        }
         }
         console.error("Registration Error:", error.message || error);
         return res.status(500).json({ 
-        error: 'Internal Server Error', 
-        message: 'something wrong happened when registering the user' 
+            error: 'Internal Server Error', 
+            message: 'something wrong happened when registering the user' 
         });
     }
 }

@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthHeader from '../components/AuthHeader';
+import api from '../services/api.js'
 
 export default function RegisterPage() {
+  const navigate = useNavigate()
   // 1. Controlled states to capture input values
   const [formData, setFormData] = useState({
     name: '',
@@ -25,7 +27,7 @@ export default function RegisterPage() {
   };
 
   // 3. Handle local validation and printing for verification
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccessMessage('');
@@ -38,11 +40,26 @@ export default function RegisterPage() {
       return;
     }
 
-    // Temporary trace logging to test form execution before connecting to API
-    console.log('Local form verification clear! Data captured:', formData);
-    
-    setSuccessMessage('Form validated successfully! Ready for backend connection.');
-    setLoading(false);
+    try{
+        const response = await api.post('/api/auth/register', formData)
+        const token = response.data?.['access-token']
+        if(token){
+            localStorage.setItem('access-token', token)
+            setSuccessMessage(response.data?.message || 'Account created successfully. Redirecting...')
+            setError('')
+            setTimeout(() => {
+                navigate('/dashboard')
+            }, 1500)
+        }
+        else{
+            setError('Server responded successfully, but authentication token was missing.');
+        }
+    } catch (error) {
+      const backendMessage = error.response?.data?.message || 'Something went wrong when registering.';
+      setError(backendMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

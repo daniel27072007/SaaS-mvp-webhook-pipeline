@@ -1,10 +1,16 @@
 import express from 'express'
+import cors from 'cors'
 import authRouter from './routes/auth.routes.js'
 import userRouter from './routes/user.routes.js'
 import featuresRouter from './routes/features.routes.js'
 import paymentsRouter from './routes/payments.routes.js'
 
 const app = express()
+
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true
+}))
 
 app.use(express.json({
     verify: (req, res, buf) => {
