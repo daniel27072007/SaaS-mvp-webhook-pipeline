@@ -32,7 +32,9 @@ export default function LandingPage() {
       {/* Top Navbar */}
       <header className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center border-b border-slate-800">
         <div className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-          SaaS MVP
+          <Link to="/">
+            SaaS MVP
+          </Link>
         </div>
         <div className="space-x-4">
           <Link to="/login" className="px-4 py-2 text-sm font-medium hover:text-cyan-400 transition">
