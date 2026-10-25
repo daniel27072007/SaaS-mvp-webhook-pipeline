@@ -114,3 +114,4 @@ export default function LoginPage() {
     </div>
   );
 }
+//if client get to login by clicking at normal or premium in '/' after login send with to dashboard?
