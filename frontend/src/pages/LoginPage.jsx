@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthHeader from '../components/AuthHeader';
+import api from '../services/api.js'
 
 export default function LoginPage() {
+  const navigate = useNavigate()
   // 1. Setup local state for handling credential fields
   const [credentials, setCredentials] = useState({
     email: '',
@@ -23,7 +25,7 @@ export default function LoginPage() {
   };
 
   // 3. Process form authentication action locally for now
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccessMessage('');
@@ -36,11 +38,26 @@ export default function LoginPage() {
       return;
     }
 
-    // Temporary trace checkpoint before binding API endpoints in Step 4
-    console.log('Local login form verified! Data captured:', credentials);
-    
-    setSuccessMessage('Credentials validated locally! Ready for API integration.');
-    setLoading(false);
+    try {
+        const response = await api.post('/api/auth/login', credentials)
+        const token = response.data?.['access-token']
+        if(token){
+            localStorage.setItem('access-token', token)
+            setSuccessMessage('Authentication successful! Redirecting...');
+            setError('');
+            setTimeout(() => {
+                navigate('/dashboard')
+            },1500)
+        }
+        else{
+            setError('Server responded successfully, but token was missing.');
+        }
+    } catch (error) {
+        const backendMessage = error.response?.data?.error || 'Invalid credentials or server offline.';
+        setError(backendMessage);
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (

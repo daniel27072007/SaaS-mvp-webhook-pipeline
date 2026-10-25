@@ -45,7 +45,7 @@ export default function RegisterPage() {
         const token = response.data?.['access-token']
         if(token){
             localStorage.setItem('access-token', token)
-            setSuccessMessage(response.data?.message || 'Account created successfully. Redirecting...')
+            setSuccessMessage('Account created successfully. Redirecting...')
             setError('')
             setTimeout(() => {
                 navigate('/dashboard')
