@@ -2,15 +2,15 @@ import { useState, useEffect } from 'react'
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import api from '../services/api.js';
-import { use } from 'react';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 export default function DashboardPage() {
     const { user, logout } = useAuth()
     const navigate = useNavigate()
 
+    //dashboard-summary part
     const [summary, setSummary] = useState(null)
     const [summaryLoading, setSummaryLoading] = useState(true)
-
     useEffect(() => {
         const fecthSummary = async () => {
             try {
@@ -24,6 +24,24 @@ export default function DashboardPage() {
         }
         fecthSummary()
     }, [])
+
+    //analytics-reports part
+    const [chartData, setChartData] = useState(null)
+    const [loadingChartData, setChartDataLoading] = useState(false)
+    const handleSimulateReport = async () => {
+      setChartDataLoading(true)
+      try {
+        const response = await api.post('/api/features/analytics-reports', {
+          filaName: 'corporate_revenue_q4.csv',
+          fileSize: '2.8 MB'
+        })
+        setChartData(response.data.data)
+      } catch (error) {
+        console.error('RBAC Block or Server Error', error)
+      } finally{
+        setChartDataLoading(false)
+      }
+    }
 
     const handleLogout = () => {
         logout()
@@ -129,6 +147,74 @@ export default function DashboardPage() {
             </div>
           </>
         )}
+
+        {/* Seção de Relatórios e Gráficos (RBAC / Recharts) */}
+        <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-slate-200">Analytics Report Pipeline</h3>
+              <p className="text-xs text-slate-400">Process financial records and visualize trends.</p>
+            </div>
+            
+            {/* Se o plano for 'none', desabilita o botão visualmente */}
+            <button
+              onClick={handleSimulateReport}
+              disabled={loadingChartData || user?.subscription === 'none'}
+              className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 disabled:bg-slate-700 text-slate-950 disabled:text-slate-500 font-bold text-xs rounded-xl transition cursor-pointer disabled:cursor-not-allowed"
+            >
+              {loadingChartData ? 'Processing...' : 'Simulate Report Upload'}
+            </button>
+          </div>
+
+          {/* Controle Visual de Planos (RBAC Front-end) */}
+          {user?.subscription === 'none' ? (
+            <div className="bg-slate-900/60 border border-dashed border-slate-700 p-12 rounded-xl text-center space-y-3">
+              <p className="text-sm text-slate-400">
+                🔒 The Analytics Graph Suite is exclusive to Normal and Premium plans.
+              </p>
+              <p className="text-xs text-cyan-400 font-medium">
+                Upgrade your subscription to unlock file pipelines and interactive data engines.
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Se o usuário tiver acesso mas ainda não clicou no botão */}
+              {!chartData && !loadingChartData && (
+                <div className="border border-dashed border-slate-700 p-12 rounded-xl text-center text-sm text-slate-500">
+                  Click the button above to simulate a pipeline file processing event.
+                </div>
+              )}
+
+              {/* Gráfico do Recharts quando os dados chegam */}
+              {chartData && (
+                <div className="space-y-4">
+                  <div className="text-xs bg-slate-900/40 p-3 rounded-lg border border-slate-700/50 flex flex-wrap gap-4 text-slate-400">
+                    <div>File: <span className="text-slate-300 font-mono">{chartData.meta.processedFile}</span></div>
+                    <div>Size: <span className="text-slate-300 font-mono">{chartData.meta.size}</span></div>
+                  </div>
+
+                  <div className="w-full h-[300px] bg-slate-900/30 p-4 rounded-xl border border-slate-700/30">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData.charts.lineChart.datasets[0].data.map((val, index) => ({
+                        month: chartData.charts.lineChart.labels[index],
+                        Sales: val,
+                        Costs: chartData.charts.lineChart.datasets[1].data[index]
+                      }))}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                        <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} />
+                        <YAxis stroke="#94a3b8" fontSize={12} />
+                        <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569', color: '#f1f5f9' }} />
+                        <Legend />
+                        <Line type="monotone" dataKey="Sales" stroke="#22d3ee" strokeWidth={2} activeDot={{ r: 6 }} />
+                        <Line type="monotone" dataKey="Costs" stroke="#f43f5e" strokeWidth={2} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
 
       </main>
     </div>
