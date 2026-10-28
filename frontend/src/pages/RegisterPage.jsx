@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthHeader from '../components/AuthHeader';
 import api from '../services/api.js'
+import { useAuth } from '../context/AuthContext.jsx';
 
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const { login } = useAuth
   // 1. Controlled states to capture input values
   const [formData, setFormData] = useState({
     name: '',
@@ -44,7 +46,7 @@ export default function RegisterPage() {
         const response = await api.post('/api/auth/register', formData)
         const token = response.data?.['access-token']
         if(token){
-            localStorage.setItem('access-token', token)
+            login(token)
             setSuccessMessage('Account created successfully. Redirecting...')
             setError('')
             setTimeout(() => {

@@ -13,7 +13,7 @@ export function AuthProvider({ children }) {
                 const decoded = jwtDecode(token)
                 setUser({
                     id: decoded.userId,
-                    subscription: decoded.subscription   
+                    subscription: decoded.userSubscription   
                 })
             } catch (error) {
                 localStorage.removeItem('access-token')
@@ -27,7 +27,7 @@ export function AuthProvider({ children }) {
         const decoded = jwtDecode(token)
         setUser({
             id: decoded.userId,
-            subscription: decoded.subscription
+            subscription: decoded.userSubscription
         })
     }
 
