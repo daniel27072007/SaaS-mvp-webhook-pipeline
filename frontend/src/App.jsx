@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route} from 'react-router-dom'
 import LandingPage from './pages/landingPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import PrivateRoute from './components/PrivateRoute';
 
 function App() {
   function TempDashboard() {
@@ -21,10 +22,14 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public Routes */}
         <Route path='/' element={<LandingPage/>}/>
         <Route path='/login' element={<LoginPage/>}/>
         <Route path='/register' element={<RegisterPage/>}/>
-        <Route path='/dashboard' element={<TempDashboard/>}/>
+        {/* Private Routes */}
+        <Route element={<PrivateRoute/>}>
+          <Route path='/dashboard' element={<TempDashboard/>}/>
+        </Route>
       </Routes>
     </BrowserRouter>
   )
