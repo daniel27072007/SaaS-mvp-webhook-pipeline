@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthHeader from '../components/AuthHeader';
 import api from '../services/api.js'
+import { useAuth } from '../context/AuthContext.jsx';
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const { login } = useAuth()
+
   // 1. Setup local state for handling credential fields
   const [credentials, setCredentials] = useState({
     email: '',
@@ -42,7 +45,7 @@ export default function LoginPage() {
         const response = await api.post('/api/auth/login', credentials)
         const token = response.data?.['access-token']
         if(token){
-            localStorage.setItem('access-token', token)
+            login(token)
             setSuccessMessage('Authentication successful! Redirecting...');
             setError('');
             setTimeout(() => {
