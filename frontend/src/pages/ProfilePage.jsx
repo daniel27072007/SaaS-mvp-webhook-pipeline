@@ -7,14 +7,10 @@ export default function ProfilePage() {
     const { user, logout } = useAuth()
     const navigate = useNavigate()
 
+    //getting profile data from api
     const [profileData, setProfileData] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
-
-    const [passwordForm, setPasswordForm] = useState({
-        password: '',
-        newPassword: '',
-    })
 
     useEffect(() => {
         const fetchProfileData = async () => {
@@ -32,20 +28,54 @@ export default function ProfilePage() {
         fetchProfileData()
     }, [])
 
+    //part that makes frontend send the correct info to api so can change the password
+    const [passwordForm, setPasswordForm] = useState({
+        password: '',
+        newPassword: '',
+    })
+    const [formError, setFormError] = useState('');
+    const [formSuccess, setFormSuccess] = useState('');
+    const [formLoading, setFormLoading] = useState(false);
+
+    const handlePasswordSubmit = async (e) => {
+        e.preventDefault()
+        setFormError('')
+        setFormSuccess('')
+        if(!passwordForm.password || !passwordForm.newPassword){
+            setFormError('Both current and new password fields are required.');
+            return
+        }
+        try {
+            setFormLoading(true)
+            const response = await api.put('/api/users/profile', passwordForm)
+            setFormSuccess(response.data?.message || 'Password updated with success.')
+            setPasswordForm({ password: '', newPassword: '' })
+        } catch (error) {
+            console.error('Error when updating the password:', error);
+            const backendMessage = error.response?.data?.message || error.response?.data?.erroror || 'Failed to update password.';
+            setFormError(backendMessage);
+        } finally {
+            setFormLoading(false)
+        }
+    }
+
     const handleInputChange = (e) => {
         const { name, value } = e.target
         setPasswordForm((prev) => ({ ...prev, [name]: value }))
-    }
-
-    const handlePasswordSubmit = (e) => {
-        e.preventDefault()
-        console.log('Password data sent', passwordForm)
     }
 
     const handleLogout = () => {
         logout()
         navigate('/')
     }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-cyan-400 flex items-center justify-center font-medium animate-pulse">
+        Fetching profile data...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 font-sans flex flex-col">
@@ -113,10 +143,24 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Seção 2: Formulário de Segurança (Alteração de Senha) */}
+        {/* Formulário de Segurança (Alteração de Senha) */}
         <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg space-y-4">
           <h3 className="text-lg font-bold text-slate-200 border-b border-slate-700 pb-2">Security Settings</h3>
           
+          {/* Feedback de Erro do Formulário */}
+          {formError && (
+            <div className="bg-red-500/10 border border-red-500 text-red-400 p-3 rounded-lg text-sm max-w-md">
+              {formError}
+            </div>
+          )}
+
+          {/* Feedback de Sucesso do Formulário */}
+          {formSuccess && (
+            <div className="bg-emerald-500/10 border border-emerald-500 text-emerald-400 p-3 rounded-lg text-sm max-w-md">
+              {formSuccess}
+            </div>
+          )}
+
           <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-md">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1">Current Password</label>
@@ -144,9 +188,10 @@ export default function ProfilePage() {
 
             <button
               type="submit"
-              className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs rounded-xl transition cursor-pointer"
+              disabled={formLoading}
+              className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 disabled:bg-slate-700 text-slate-950 disabled:text-slate-500 font-bold text-xs rounded-xl transition cursor-pointer disabled:cursor-not-allowed"
             >
-              Update Password
+              {formLoading ? 'Updating...' : 'Update Password'}
             </button>
           </form>
         </div>
