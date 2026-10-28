@@ -1,0 +1,136 @@
+import { useState } from 'react'
+import { useAuth } from '../context/AuthContext'
+import { useNavigate } from 'react-router-dom'
+
+export default function ProfilePage() { 
+    const { user, logout } = useAuth()
+    const navigate = useNavigate()
+
+    const [profileData, setProfileData] = useState({
+        name: 'Loading...',
+        email: 'Loading...',
+        subscription: user?.subscription || 'none',
+        subscriptionStatus: 'none',
+    })
+
+    const [passwordForm, setPasswordForm] = useState({
+        password: '',
+        newPassword: '',
+    })
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target
+        setPasswordForm((prev) => ({ ...prev, [name]: value }))
+    }
+
+    const handlePasswordSubmit = (e) => {
+        e.preventDefault()
+        console.log('Password data sent', passwordForm)
+    }
+
+    const handleLogout = () => {
+        logout()
+        navigate('/')
+    }
+
+  return (
+    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans flex flex-col">
+      {/* Cabeçalho Superior Simples */}
+      <header className="bg-slate-800 border-b border-slate-700 px-6 py-4 flex justify-between items-center shadow-md">
+        <div>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                User Profile Settings
+            </h1>
+            <p className="text-xs text-slate-400">
+                User ID: <span className="text-slate-300 font-mono">{user?.id}</span>
+            </p>
+        </div>
+        <div className="flex items-center gap-4">
+            <button
+            onClick={() => navigate('/dashboard')}
+            className="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg text-xs font-medium transition cursor-pointer"
+            >
+                Back to Dashboard
+            </button>
+            <button
+            onClick={handleLogout}
+            className="px-4 py-1.5 bg-red-600/20 hover:bg-red-600 border border-red-500/30 hover:border-red-500 text-red-400 hover:text-white rounded-lg text-xs font-medium transition cursor-pointer"
+            >
+                Sign Out
+            </button>
+        </div>
+      </header>
+
+      {/* Conteúdo Principal */}
+      <main className="flex-1 p-6 max-w-4xl w-full mx-auto space-y-6">
+        
+        {/* Seção 1: Informações do Perfil */}
+        <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg space-y-4">
+          <h3 className="text-lg font-bold text-slate-200 border-b border-slate-700 pb-2">Account Details</h3>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-slate-400 font-medium">Full Name</p>
+              <p className="text-base text-slate-100 font-semibold mt-0.5">{profileData.name}</p>
+            </div>
+            <div>
+              <p className="text-slate-400 font-medium">Email Address</p>
+              <p className="text-base text-slate-100 font-semibold mt-0.5">{profileData.email}</p>
+            </div>
+            <div>
+              <p className="text-slate-400 font-medium">Current Plan</p>
+              <span className="inline-block px-2.5 py-0.5 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-semibold rounded-full uppercase tracking-wider mt-1">
+                {profileData.subscription}
+              </span>
+            </div>
+            <div>
+              <p className="text-slate-400 font-medium">Subscription Status</p>
+              <span className="inline-block px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold rounded-full uppercase tracking-wider mt-1">
+                {profileData.subscriptionStatus}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Seção 2: Formulário de Segurança (Alteração de Senha) */}
+        <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg space-y-4">
+          <h3 className="text-lg font-bold text-slate-200 border-b border-slate-700 pb-2">Security Settings</h3>
+          
+          <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-md">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Current Password</label>
+              <input
+                type="password"
+                name="password"
+                value={passwordForm.password}
+                onChange={handleInputChange}
+                placeholder="••••••••"
+                className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-xl focus:outline-none focus:border-cyan-500 text-slate-100 text-sm transition"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">New Password</label>
+              <input
+                type="password"
+                name="newPassword"
+                value={passwordForm.newPassword}
+                onChange={handleInputChange}
+                placeholder="••••••••"
+                className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-xl focus:outline-none focus:border-cyan-500 text-slate-100 text-sm transition"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs rounded-xl transition cursor-pointer"
+            >
+              Update Password
+            </button>
+          </form>
+        </div>
+
+      </main>
+    </div>
+  );
+}

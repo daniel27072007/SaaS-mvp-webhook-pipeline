@@ -76,7 +76,7 @@ export default function DashboardPage() {
             SaaS Corporate Dashboard
           </h1>
           <p className="text-xs text-slate-400">
-            Welcome back! User ID: <span className="text-slate-300 font-mono">{user?.id}</span>
+            User ID: <span className="text-slate-300 font-mono">{user?.id}</span>
           </p>
         </div>
 
@@ -86,6 +86,13 @@ export default function DashboardPage() {
             Plan: {user?.subscription}
           </span>
           
+          <button
+            onClick={() => navigate('/profile')}
+            className="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg text-xs font-medium transition cursor-pointer"
+          >
+            Profile
+          </button>
+
           <button
             onClick={handleLogout}
             className="px-4 py-1.5 bg-red-600/20 hover:bg-red-600 border border-red-500/30 hover:border-red-500 text-red-400 hover:text-white rounded-lg text-xs font-medium transition cursor-pointer"

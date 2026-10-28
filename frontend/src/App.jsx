@@ -3,6 +3,7 @@ import LandingPage from './pages/landingPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
+import ProfilePage from './pages/ProfilePage'
 import PrivateRoute from './components/PrivateRoute';
 import { useAuth } from './context/AuthContext'
 
@@ -17,6 +18,7 @@ function App() {
         {/* Private Routes */}
         <Route element={<PrivateRoute/>}>
           <Route path='/dashboard' element={<DashboardPage/>}/>
+          <Route path='/profile' element={<ProfilePage/>}/>
         </Route>
       </Routes>
     </BrowserRouter>
