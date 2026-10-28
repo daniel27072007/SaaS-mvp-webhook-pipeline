@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 
 export default function RegisterPage() {
   const navigate = useNavigate()
-  const { login } = useAuth
+  const { login } = useAuth()
   // 1. Controlled states to capture input values
   const [formData, setFormData] = useState({
     name: '',

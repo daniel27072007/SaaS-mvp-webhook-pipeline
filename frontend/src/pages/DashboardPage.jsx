@@ -1,9 +1,29 @@
+import { useState, useEffect } from 'react'
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import api from '../services/api.js';
+import { use } from 'react';
 
 export default function DashboardPage() {
     const { user, logout } = useAuth()
     const navigate = useNavigate()
+
+    const [summary, setSummary] = useState(null)
+    const [summaryLoading, setSummaryLoading] = useState(true)
+
+    useEffect(() => {
+        const fecthSummary = async () => {
+            try {
+                const response = await api.get('/api/features/dashboard-summary')
+                setSummary(response.data.data)
+            } catch (error) {
+                console.error('Failed to load dashboard statistics:', error)
+            } finally {
+                setSummaryLoading(false)
+            }
+        }
+        fecthSummary()
+    }, [])
 
     const handleLogout = () => {
         logout()
@@ -38,14 +58,78 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* Conteúdo Principal (Onde os cards e relatórios vão entrar depois) */}
-      <main className="flex-1 p-6 max-w-7xl w-full mx-auto">
-        <div className="bg-slate-800/40 border border-slate-800 p-8 rounded-2xl text-center md:text-left">
-          <h2 className="text-2xl font-bold mb-2">Workspace Overview</h2>
-          <p className="text-slate-400 text-sm">
-            This workspace adapts based on your active subscription status.
-          </p>
-        </div>
+      {/* Conteúdo Principal */}
+      <main className="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
+        
+        {/* Estado de Carregamento Local */}
+        {summaryLoading ? (
+          <div className="text-center py-12 text-cyan-400 animate-pulse font-medium">
+            Fetching server analytics...
+          </div>
+        ) : (
+          <>
+            {/* Grid de Cards Estatísticos (Dados vindos do Backend) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              
+              <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg">
+                <p className="text-sm text-slate-400 font-medium">Total Users</p>
+                <p className="text-2xl font-bold text-slate-100 mt-1">{summary?.overview?.totalUsers}</p>
+              </div>
+
+              <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg">
+                <p className="text-sm text-slate-400 font-medium">Active Subscriptions</p>
+                <p className="text-2xl font-bold text-cyan-400 mt-1">{summary?.overview?.activeSubscriptions}</p>
+              </div>
+
+              <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg">
+                <p className="text-sm text-slate-400 font-medium">Monthly Revenue</p>
+                <p className="text-2xl font-bold text-emerald-400 mt-1">
+                  ${summary?.overview?.monthlyRevenue?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+
+              <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg">
+                <p className="text-sm text-slate-400 font-medium">Growth Revenue</p>
+                <p className="text-2xl font-bold text-purple-400 mt-1">+{summary?.overview?.growthPercentage}%</p>
+              </div>
+
+            </div>
+
+            {/* Layout de duas colunas para Atividades e Status */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              
+              {/* Painel de Atividades Recentes */}
+              <div className="lg:col-span-2 bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg space-y-4">
+                <h3 className="text-lg font-bold text-slate-200">Recent Webhook & System Activities</h3>
+                <div className="divide-y divide-slate-700">
+                  {summary?.recentActivity?.map((activity) => (
+                    <div key={activity.id} className="py-3 flex justify-between items-center text-sm">
+                      <span className="text-slate-300 font-medium">{activity.action}</span>
+                      <span className="text-slate-500 text-xs">{activity.time}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Status do Sistema Corporativo */}
+              <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg flex flex-col justify-between">
+                <div className="space-y-2">
+                  <h3 className="text-lg font-bold text-slate-200">System Gateway</h3>
+                  <p className="text-xs text-slate-400">Real-time status connectivity map.</p>
+                </div>
+                
+                <div className="mt-4 p-4 bg-slate-900/60 rounded-lg border border-slate-700/50 flex items-center justify-between">
+                  <span className="text-sm text-slate-300 font-medium">API Core Pipeline</span>
+                  <span className="px-2.5 py-0.5 text-xs font-bold uppercase rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    {summary?.systemStatus?.apiStatus}
+                  </span>
+                </div>
+              </div>
+
+            </div>
+          </>
+        )}
+
       </main>
     </div>
   );
