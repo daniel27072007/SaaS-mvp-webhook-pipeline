@@ -8,10 +8,14 @@ export default function DashboardPage() {
     const { user, logout } = useAuth()
     const navigate = useNavigate()
 
-    //dashboard-summary part
+    //dashboard-summary and premium feature (they are togheter becuase they load when the screen is rendering)
     const [summary, setSummary] = useState(null)
     const [summaryLoading, setSummaryLoading] = useState(true)
+    const [aiInsights, setAiInsights] = useState(null);
+    const [aiLoading, setAiLoading] = useState(false);
+
     useEffect(() => {
+        //default part
         const fecthSummary = async () => {
             try {
                 const response = await api.get('/api/features/dashboard-summary')
@@ -22,10 +26,25 @@ export default function DashboardPage() {
                 setSummaryLoading(false)
             }
         }
+        //premimum part
+        const fetchAiInsights = async () => {
+          if(user?.subscription !== 'premium') return
+          setAiLoading(true)
+          try {
+            const response = await api.get('/api/features/ai-advisor-insights')
+            setAiInsights(response.data.data)
+          } catch (error) {
+            console.error("Premium RBAC validation failed:", error);
+          } finally{
+            setAiLoading(false)
+          }
+        }
+        //running the functions
         fecthSummary()
+        fetchAiInsights()
     }, [])
 
-    //analytics-reports part
+    //analytics-reports part (since needs a button to work we make it a function so only runs if the user click on it, not automatic, even with a plan)
     const [chartData, setChartData] = useState(null)
     const [loadingChartData, setChartDataLoading] = useState(false)
     const handleSimulateReport = async () => {
@@ -79,7 +98,7 @@ export default function DashboardPage() {
       {/* Conteúdo Principal */}
       <main className="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
         
-        {/* Estado de Carregamento Local */}
+        {/* Estado de Carregamento Local - All loged users*/}
         {summaryLoading ? (
           <div className="text-center py-12 text-cyan-400 animate-pulse font-medium">
             Fetching server analytics...
@@ -148,7 +167,7 @@ export default function DashboardPage() {
           </>
         )}
 
-        {/* Seção de Relatórios e Gráficos (RBAC / Recharts) */}
+        {/* Seção de Relatórios e Gráficos (RBAC / Recharts) - Plan normal and premium */}
         <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -213,6 +232,92 @@ export default function DashboardPage() {
                 </div>
               )}
             </>
+          )}
+        </div>
+
+        {/* Seção AI Advisor Insights (Exclusivo Premium) */}
+        <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg space-y-6 relative overflow-hidden">
+          
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-bold text-slate-200">AI Advisor Insights</h3>
+              <p className="text-xs text-slate-400">Autonomous corporate optimization vector metrics.</p>
+            </div>
+            {user?.subscription === 'premium' && (
+              <span className="px-2 py-0.5 text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded uppercase tracking-wider">
+                {aiInsights?.meta?.modelUsed}
+              </span>
+            )}
+          </div>
+
+          {/* Se NÃO for premium, aplica o efeito Blur (Borrado) por cima */}
+          {user?.subscription !== 'premium' ? (
+            <div className="relative">
+              {/* Conteúdo Falso/Borrado para criar o visual de desejo de Upgrade */}
+              <div className="space-y-4 filter blur-sm select-none pointer-events-none opacity-20">
+                <div className="p-4 bg-slate-950/40 border border-slate-800 rounded-xl">
+                  <div className="h-4 bg-slate-700 w-1/4 rounded mb-2"></div>
+                  <div className="h-3 bg-slate-700 w-3/4 rounded"></div>
+                </div>
+                <div className="p-4 bg-slate-950/40 border border-slate-800 rounded-xl">
+                  <div className="h-4 bg-slate-700 w-1/3 rounded mb-2"></div>
+                  <div className="h-3 bg-slate-700 w-2/3 rounded"></div>
+                </div>
+              </div>
+
+              {/* Camada superior com o aviso de bloqueio real */}
+              <div className="absolute inset-0 flex flex-col items-center text-center p-4">
+                <p className="text-sm font-bold text-slate-200 mb-1">
+                  👑 Exclusive AI Advisor Suite
+                </p>
+                <p className="text-xs text-slate-400 max-w-sm mb-3">
+                  Unlock deep operational savings models, risk churn parameters, and tailored data guidance.
+                </p>
+                <button className="px-4 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-purple-900/20 transition cursor-pointer">
+                  Upgrade to Premium
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* Se for premium, renderiza os dados reais do backend */
+            <div className="space-y-4">
+              {aiLoading ? (
+                <div className="text-center py-6 text-purple-400 animate-pulse text-sm font-medium">
+                  AI Advisor is parsing your business matrix...
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-slate-300 bg-slate-950/30 p-4 border border-slate-700/30 rounded-xl leading-relaxed">
+                    💡 <span className="font-semibold text-slate-200">Summary:</span> {aiInsights?.summary}
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {aiInsights?.insights?.map((insight) => (
+                      <div key={insight.id} className="bg-slate-950/40 border border-slate-700/50 p-4 rounded-xl flex flex-col justify-between space-y-3">
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-bold text-slate-400 tracking-wide uppercase">{insight.category}</span>
+                            <span className={`px-1.5 py-0.5 text-[9px] font-black rounded ${
+                              insight.priority === 'HIGH' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
+                              insight.priority === 'MEDIUM' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                              'bg-slate-700/30 text-slate-400'
+                            }`}>
+                              {insight.priority}
+                            </span>
+                          </div>
+                          <h4 className="text-sm font-bold text-slate-200 leading-tight">{insight.title}</h4>
+                          <p className="text-xs text-slate-400 leading-relaxed">{insight.description}</p>
+                        </div>
+
+                        <div className="pt-2 border-t border-slate-800 text-xs font-semibold text-purple-400">
+                          {insight.estimatedSavings || insight.estimatedImpact || insight.actionRequired}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           )}
         </div>
 
