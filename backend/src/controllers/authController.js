@@ -19,9 +19,10 @@ export const registerUser = async (req, res) => {
             name: registerData.name,
             email: registerData.email,
             password: registerData.password,
-            subscription: registerData.subscription,
-            subscriptionStatus: registerData.subscriptionStatus,
-            paymentCustomerId: registerData.paymentCustomerId
+            subscription: "none",
+            subscriptionStatus: "none",
+            paymentCustomerId: null,
+            stripeSubscriptionId: null
         }
         const registeredUser = new userModel(userData)
         const savedUser = await registeredUser.save()

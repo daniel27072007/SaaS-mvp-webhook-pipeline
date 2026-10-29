@@ -50,13 +50,21 @@ export const webhook = async (req, res) => {
                 const userId = session.metadata?.userId
                 const userSubscription = session.metadata?.userSubscription || 'none'
                 const stripeSubscriptionId = session.subscription
-                const databaseUser = await userModel.findOne({ _id: userId }).select(["subscription", "subscriptionStatus", "stripeSubscriptionId"])
+                const paymentCustomerId = session.customer
+
+                const databaseUser = await userModel.findOne({ _id: userId }).select([
+                    "subscription",
+                    "subscriptionStatus",
+                    "stripeSubscriptionId",
+                    "paymentCustomerId"
+                ])
                 if(!databaseUser){
                     return res.status(400).json({ error: "User not found"}) //not 404 so stripe dosent think is a error 404 about him sending the req
                 }
                 databaseUser.subscription = userSubscription
                 databaseUser.subscriptionStatus = 'active'
                 databaseUser.stripeSubscriptionId = stripeSubscriptionId
+                databaseUser.paymentCustomerId = paymentCustomerId
                 await databaseUser.save()
                 break
             }
