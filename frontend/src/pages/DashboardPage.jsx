@@ -3,10 +3,19 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import api from '../services/api.js';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { redirectToCheckout } from '../services/payments.js';
 
 export default function DashboardPage() {
     const { user, logout } = useAuth()
     const navigate = useNavigate()
+
+    const handlePremiumSelection = async () => {
+      try {
+        await redirectToCheckout('price_1UTPox1YFbGwh7Z0qaR2IfWB')
+      } catch (error) {
+        alert('Failed to start payment screen:' + error.message)
+      }
+    }
 
     //dashboard-summary and premium feature (they are togheter becuase they load when the screen is rendering)
     const [summary, setSummary] = useState(null)
@@ -91,6 +100,13 @@ export default function DashboardPage() {
             className="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg text-xs font-medium transition cursor-pointer"
           >
             Profile
+          </button>
+
+          <button
+            onClick={() => navigate('/')}
+            className="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg text-xs font-medium transition cursor-pointer"
+          >
+            Landing Page
           </button>
 
           <button
@@ -201,6 +217,12 @@ export default function DashboardPage() {
               <p className="text-xs text-cyan-400 font-medium">
                 Upgrade your subscription to unlock file pipelines and interactive data engines.
               </p>
+              <button
+                onClick={() => navigate('/')}
+                className="px-4 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-purple-900/20 transition cursor-pointer"
+              >
+                Upgrade your plan
+              </button>
             </div>
           ) : (
             <>
@@ -280,8 +302,11 @@ export default function DashboardPage() {
                 <p className="text-xs text-slate-400 max-w-sm mb-3">
                   Unlock deep operational savings models, risk churn parameters, and tailored data guidance.
                 </p>
-                <button className="px-4 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-purple-900/20 transition cursor-pointer">
-                  Upgrade to Premium
+                <button
+                  onClick={() => navigate('/')}
+                  className="px-4 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-purple-900/20 transition cursor-pointer"
+                >
+                  Upgrade your plan
                 </button>
               </div>
             </div>
