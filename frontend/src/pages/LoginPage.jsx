@@ -140,7 +140,7 @@ export default function LoginPage() {
 
         <p className="text-center text-sm text-slate-400 mt-6">
           Don't have an operational account?{' '}
-          <Link to="/register" className="text-cyan-400 hover:underline">
+          <Link to="/register" state={{ selectedPriceId: selectedPriceId }} className="text-cyan-400 hover:underline">
             Register now
           </Link>
         </p>
