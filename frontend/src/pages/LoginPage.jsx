@@ -1,12 +1,16 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import AuthHeader from '../components/AuthHeader';
 import api from '../services/api.js'
 import { useAuth } from '../context/AuthContext.jsx';
+import { redirectToCheckout } from '../services/payments.js';
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { login } = useAuth()
+
+  const selectedPriceId = location.state?.selectedPriceId
 
   // 1. Setup local state for handling credential fields
   const [credentials, setCredentials] = useState({
@@ -48,8 +52,18 @@ export default function LoginPage() {
             login(token)
             setSuccessMessage('Authentication successful! Redirecting...');
             setError('');
-            setTimeout(() => {
+            setTimeout(async () => {
+              if(selectedPriceId){
+                try {
+                  await redirectToCheckout(selectedPriceId)
+                } catch (error) {
+                  setError(`Login made with success but was unable to redirect to checkout: ${error.message}`);
+                  navigate('/dashboard'); 
+                }
+              }
+              else{
                 navigate('/dashboard')
+              }
             },1500)
         }
         else{

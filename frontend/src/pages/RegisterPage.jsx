@@ -1,13 +1,17 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import AuthHeader from '../components/AuthHeader';
 import api from '../services/api.js'
 import { useAuth } from '../context/AuthContext.jsx';
+import { redirectToCheckout } from '../services/payments.js';
 
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { login } = useAuth()
-  // 1. Controlled states to capture input values
+
+  const selectedPriceId = location.state?.selectedPriceId
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -49,9 +53,19 @@ export default function RegisterPage() {
             login(token)
             setSuccessMessage('Account created successfully. Redirecting...')
             setError('')
-            setTimeout(() => {
+            setTimeout(async () => {
+              if(selectedPriceId){
+                try {
+                  await redirectToCheckout(selectedPriceId)
+                } catch (error) {
+                  setError(`Login made with success but was unable to redirect to checkout: ${error.message}`);
+                  navigate('/dashboard'); 
+                }
+              }
+              else{
                 navigate('/dashboard')
-            }, 1500)
+              }
+            },1500)
         }
         else{
             setError('Server responded successfully, but authentication token was missing.');
@@ -123,21 +137,6 @@ export default function RegisterPage() {
               placeholder="••••••••"
               className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:outline-none focus:border-cyan-500 text-slate-100 text-sm transition"
             />
-          </div>
-
-          {/* Subscription Field */}
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Select Subscription Plan</label>
-            <select
-              name="subscription"
-              value={formData.subscription}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:outline-none focus:border-cyan-500 text-slate-100 text-sm transition"
-            >
-              <option value="none">None (Free Access)</option>
-              <option value="normal">Normal Plan</option>
-              <option value="premium">Premium Plan</option>
-            </select>
           </div>
 
           {/* Submit Action */}

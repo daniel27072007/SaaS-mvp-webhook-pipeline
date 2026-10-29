@@ -1,7 +1,11 @@
-import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext'
+import { Link, useNavigate } from 'react-router-dom';
+import { redirectToCheckout } from '../services/payments';
 
 export default function LandingPage() {
-  // Array defining the three plans required by Step 2
+  const { user } = useAuth()
+  const navigate = useNavigate()
+
   const plans = [
     {
       name: 'None',
@@ -9,6 +13,7 @@ export default function LandingPage() {
       description: 'Basic access to discover the core system features.',
       features: ['Basic Dashboard view', 'No advanced reports', 'No AI insights'],
       buttonText: 'Get Started',
+      priceId: null,
     },
     {
       name: 'Normal',
@@ -16,6 +21,7 @@ export default function LandingPage() {
       description: 'Perfect for professionals who need standard analytics.',
       features: ['Basic Dashboard view', 'Submit Analytics Reports', 'No AI insights'],
       buttonText: 'Subscribe Normal',
+      priceId: 'price_1UTPpB1YFbGwh7Z0EL4zrNsN',
       popular: true,
     },
     {
@@ -24,8 +30,34 @@ export default function LandingPage() {
       description: 'Full power with our AI Advisor guiding your business decisions.',
       features: ['Basic Dashboard view', 'Submit Analytics Reports', 'Exclusive AI Advisor Insights'],
       buttonText: 'Go Premium',
+      priceId: 'price_1UTPox1YFbGwh7Z0qaR2IfWB',
     },
   ];
+
+  const handlePlanSelection = async (plan) => {
+    //Case 1: free plan
+    if(!plan.planId){
+      if(user){
+        navigate('/dashboard')
+      }
+      else{
+        navigate('/login')
+      }
+      return
+    }
+    //Case 2: user is loged
+    if(user){
+      try {
+        await redirectToCheckout(plan.priceId)
+      } catch (error) {
+        alert('Failed to start payment screen:', error.message)
+      }
+    }
+    //Case 3: user is not loged
+    else{
+      navigate('/login', { state: { selectedPriceId: plan.priceId } });
+    }
+  }
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 font-sans">
@@ -87,17 +119,17 @@ export default function LandingPage() {
                 ))}
               </ul>
 
-              {/* Call to Action Button (Requirement 2 from Image) */}
-              <Link
-                to="/login"
-                className={`w-full block text-center py-3 rounded-xl font-medium transition ${
+              {/* Call to Action Button */}
+              <button
+                onClick={() => handlePlanSelection(plan)}
+                className={`w-full text-center py-3 rounded-xl font-medium transition cursor-pointer ${
                   plan.popular
                     ? 'bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold'
                     : 'bg-slate-700 hover:bg-slate-600 text-slate-100'
                 }`}
               >
                 {plan.buttonText}
-              </Link>
+              </button>
             </div>
           ))}
         </div>
