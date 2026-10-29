@@ -36,7 +36,7 @@ export default function LandingPage() {
 
   const handlePlanSelection = async (plan) => {
     //Case 1: free plan
-    if(!plan.planId){
+    if(!plan.priceId){
       if(user){
         navigate('/dashboard')
       }
@@ -50,7 +50,7 @@ export default function LandingPage() {
       try {
         await redirectToCheckout(plan.priceId)
       } catch (error) {
-        alert('Failed to start payment screen:', error.message)
+        alert('Failed to start payment screen:' + error.message)
       }
     }
     //Case 3: user is not loged
