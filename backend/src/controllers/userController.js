@@ -1,4 +1,5 @@
 import { userModel } from '../models/user.model.js'
+import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import 'dotenv/config'
 
@@ -9,8 +10,20 @@ export const getProfile = async (req, res) => {
         if(!databaseUser){
             return res.status(404).json({ error: "User not found" })
         }
-        console.log("user found, sending info...")
-        return res.status(200).json(databaseUser)
+
+        const tokenAccess = jwt.sign(
+            {userId: savedUser._id, userSubscription: savedUser.subscription},
+            process.env.TOKEN_ACCESS_KEY,
+            {expiresIn: process.env.TOKEN_ACCESS_KEY_EXPIRES}
+        )
+
+        return res.status(200).json({
+            name: databaseUser.name,
+            email: databaseUser.email,
+            subscription: databaseUser.subscription,
+            subscriptionStatus: databaseUser.subscriptionStatus,
+            'access-token': tokenAccess
+        })
     } catch (error) {
         console.error("Error fetching profile:", error)
         return res.status(500).json({ Error: "Internal server error" })

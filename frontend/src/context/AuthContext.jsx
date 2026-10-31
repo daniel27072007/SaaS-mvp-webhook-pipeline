@@ -41,11 +41,16 @@ export function AuthProvider({ children }) {
         try {
             const response = await api.get('/api/users/profile')
             const updatedProfile = response.data
-            setUser(prev => ({
-                ...prev,
-                subscription: updatedProfile.subscription
-            }))
-            return updatedProfile.subscription
+            const newToken = updatedProfile['access-token']
+            if(newToken){
+                localStorage.setItem('access-token', newToken)
+                const decoded = jwtDecode(newToken)
+                setUser({
+                    id: decoded.userId,
+                    subscription: decoded.userSubscription
+                })
+                return decoded.userSubscription
+            }
         } catch (error) {
             console.error('Error when updating data of the session:', error)
         }
