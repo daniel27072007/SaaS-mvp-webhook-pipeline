@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from '../services/api.js';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { redirectToCheckout } from '../services/payments.js';
 
 export default function DashboardPage() {
-    const { user, logout } = useAuth()
+    const { user, logout, refreshUserSubscription } = useAuth()
     const navigate = useNavigate()
 
     const handlePremiumSelection = async () => {
@@ -16,6 +16,22 @@ export default function DashboardPage() {
         alert('Failed to start payment screen:' + error.message)
       }
     }
+
+    //part that checks the url params and update the plan on the screen if success
+    const [searchParams, setSearchParams] = useSearchParams()
+    const isSuccess = searchParams.get('success') === 'true'
+    const [paymentFeedback, setPaymentFeedback] = useState('')
+
+    useEffect(() => {
+      const handlePaymentSuccess = async () => {
+        if(isSuccess){
+          setPaymentFeedback('Payment completed, your plan was updated.')
+          await refreshUserSubscription()
+          setSearchParams({}, { replace: true })
+        }
+      }
+      handlePaymentSuccess()
+    }, [isSuccess])
 
     //dashboard-summary and premium feature (they are togheter becuase they load when the screen is rendering)
     const [summary, setSummary] = useState(null)
@@ -121,6 +137,13 @@ export default function DashboardPage() {
       {/* Conteúdo Principal */}
       <main className="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
         
+        {/* Payment Feedback Popup */}
+        {paymentFeedback && (
+          <div className="p-4 rounded-xl border bg-emerald-500/10 border-emerald-500 text-emerald-400 text-sm font-medium animate-fade-in">
+            {paymentFeedback}
+          </div>
+        )}
+
         {/* Estado de Carregamento Local - All loged users*/}
         {summaryLoading ? (
           <div className="text-center py-12 text-cyan-400 animate-pulse font-medium">

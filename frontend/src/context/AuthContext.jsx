@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect, useContext  } from "react";
 import { jwtDecode } from "jwt-decode"
+import api from '../services/api.js'
 
 const AuthContext = createContext({})
 
@@ -36,8 +37,22 @@ export function AuthProvider({ children }) {
         setUser(null)
     }
 
+    const refreshUserSubscription = async () => {
+        try {
+            const response = await api.get('/api/users/profile')
+            const updatedProfile = response.data
+            setUser(prev => ({
+                ...prev,
+                subscription: updatedProfile.subscription
+            }))
+            return updatedProfile.subscription
+        } catch (error) {
+            console.error('Error when updating data of the session:', error)
+        }
+    }
+
     return(
-        <AuthContext.Provider value={{ user, loading, login, logout}}>
+        <AuthContext.Provider value={{ user, loading, login, logout, refreshUserSubscription}}>
                 {children}
         </AuthContext.Provider>
     )
