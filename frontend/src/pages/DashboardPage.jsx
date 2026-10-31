@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from "../context/AuthContext";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { replace, useNavigate, useSearchParams } from "react-router-dom";
 import api from '../services/api.js';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { redirectToCheckout } from '../services/payments.js';
@@ -20,18 +20,26 @@ export default function DashboardPage() {
     //part that checks the url params and update the plan on the screen if success
     const [searchParams, setSearchParams] = useSearchParams()
     const isSuccess = searchParams.get('success') === 'true'
+    const isCanceled = searchParams.get('success') === 'false'
     const [paymentFeedback, setPaymentFeedback] = useState('')
+    const [feedbackType, setFeedbackType] = useState('')
 
     useEffect(() => {
       const handlePaymentSuccess = async () => {
         if(isSuccess){
           setPaymentFeedback('Payment completed, your plan was updated.')
+          setFeedbackType('success')
           await refreshUserSubscription()
           setSearchParams({}, { replace: true })
         }
+        if(isCanceled){
+          setPaymentFeedback('Payment canceled, your plan still the same.')
+          setFeedbackType('canceled')
+          setSearchParams({}, { replace:true })
+        }
       }
       handlePaymentSuccess()
-    }, [isSuccess])
+    }, [isSuccess, isCanceled])
 
     //dashboard-summary and premium feature (they are togheter becuase they load when the screen is rendering)
     const [summary, setSummary] = useState(null)
@@ -139,7 +147,11 @@ export default function DashboardPage() {
         
         {/* Payment Feedback Popup */}
         {paymentFeedback && (
-          <div className="p-4 rounded-xl border bg-emerald-500/10 border-emerald-500 text-emerald-400 text-sm font-medium animate-fade-in">
+          <div className={`p-4 rounded-xl border text-sm font-medium ${
+            feedbackType === 'success' 
+              ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' 
+              : 'bg-red-500/10 border-red-500 text-red-400'
+          }`}>
             {paymentFeedback}
           </div>
         )}

@@ -24,7 +24,7 @@ export const checkout = async (req, res) => {
             line_items: [{price: priceId, quantity: 1}],
             metadata: { userId : userId, userSubscription: purchasedPlan },
             success_url: `http://localhost:5173/dashboard?success=true`,
-            cancel_url: `http://localhost:5173/pricing?canceled=true`,
+            cancel_url: `http://localhost:5173/dashboard?success=false`,
         })
         return res.status(200).json({ success: true, url: session.url});
     } catch (error) {
