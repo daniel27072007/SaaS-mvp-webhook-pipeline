@@ -52,7 +52,7 @@ export default function ProfilePage() {
             setPasswordForm({ password: '', newPassword: '' })
         } catch (error) {
             console.error('Error when updating the password:', error);
-            const backendMessage = error.response?.data?.message || error.response?.data?.erroror || 'Failed to update password.';
+            const backendMessage = error.response?.data?.message || error.response?.data?.error || 'Failed to update password.';
             setFormError(backendMessage);
         } finally {
             setFormLoading(false)

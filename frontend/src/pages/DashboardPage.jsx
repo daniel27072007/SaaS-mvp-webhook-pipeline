@@ -84,7 +84,7 @@ export default function DashboardPage() {
       setChartDataLoading(true)
       try {
         const response = await api.post('/api/features/analytics-reports', {
-          filaName: 'corporate_revenue_q4.csv',
+          fileName: 'corporate_revenue_q4.csv',
           fileSize: '2.8 MB'
         })
         setChartData(response.data.data)
