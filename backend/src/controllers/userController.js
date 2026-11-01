@@ -12,7 +12,7 @@ export const getProfile = async (req, res) => {
         }
 
         const tokenAccess = jwt.sign(
-            {userId: savedUser._id, userSubscription: savedUser.subscription},
+            {userId: databaseUser._id, userSubscription: databaseUser.subscription},
             process.env.TOKEN_ACCESS_KEY,
             {expiresIn: process.env.TOKEN_ACCESS_KEY_EXPIRES}
         )

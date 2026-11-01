@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
+import { cancelUserSubscription } from '../services/payments.js'
 
 export default function ProfilePage() { 
-    const { user, logout } = useAuth()
+    const { user, logout, refreshUserSubscription } = useAuth()
     const navigate = useNavigate()
 
     //getting profile data from api
@@ -69,6 +70,32 @@ export default function ProfilePage() {
         navigate('/')
     }
 
+    //part that handle canceling the subscription
+    const [cancelLoading, setCancelLoading] = useState(false)
+
+    const handleCancelClick = async () => {
+      if(!window.confirm("Are you sure that you want to cancel the subscription?")){
+        return
+      }
+      setCancelLoading(true)
+      setFormError('')
+      setFormSuccess('')
+      try {
+        await cancelUserSubscription()
+        await refreshUserSubscription()
+        setProfileData((prevData) => ({
+            ...prevData,
+            subscription: 'none',
+            subscriptionStatus: 'none'
+        }));
+        setFormSuccess('Your subscription was cancel with success.')
+      } catch (error) {
+        setFormError(error.message);
+      } finally{
+        setCancelLoading(false)
+      }
+    }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-900 text-cyan-400 flex items-center justify-center font-medium animate-pulse">
@@ -123,6 +150,19 @@ export default function ProfilePage() {
           </div>
         )}
 
+        {/* Error and Success messagens for both password and plan cancel appear here */}
+        {formSuccess && (
+          <div className="bg-emerald-500/10 border border-emerald-500 text-emerald-400 p-4 rounded-xl text-sm font-medium">
+            {formSuccess}
+          </div>
+        )}
+        
+        {formError && (
+          <div className="bg-red-500/10 border border-red-500 text-red-400 p-4 rounded-xl text-sm font-medium">
+            {formError}
+          </div>
+        )}
+
         {/* Seção 1: Informações do Perfil de forma Dinâmica */}
         <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg space-y-4">
           <h3 className="text-lg font-bold text-slate-200 border-b border-slate-700 pb-2">Account Details</h3>
@@ -154,20 +194,6 @@ export default function ProfilePage() {
         {/* Formulário de Segurança (Alteração de Senha) */}
         <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg space-y-4">
           <h3 className="text-lg font-bold text-slate-200 border-b border-slate-700 pb-2">Security Settings</h3>
-          
-          {/* Feedback de Erro do Formulário */}
-          {formError && (
-            <div className="bg-red-500/10 border border-red-500 text-red-400 p-3 rounded-lg text-sm max-w-md">
-              {formError}
-            </div>
-          )}
-
-          {/* Feedback de Sucesso do Formulário */}
-          {formSuccess && (
-            <div className="bg-emerald-500/10 border border-emerald-500 text-emerald-400 p-3 rounded-lg text-sm max-w-md">
-              {formSuccess}
-            </div>
-          )}
 
           <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-md">
             <div>
@@ -203,6 +229,25 @@ export default function ProfilePage() {
             </button>
           </form>
         </div>
+
+        {/* Part that user can cancel the subscription*/}
+        {profileData?.subscription !== 'none' && (
+          <div className="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg space-y-4">
+            <h3 className="text-lg font-bold text-slate-200 border-b border-slate-700 pb-2">Subscription Management</h3>
+            <p className="text-xs text-slate-400 max-w-xl leading-relaxed">
+              If you cancel your subscription, you will lose all the access that you have to any premium or normal plans features, like the ai insights or advanced charts.
+            </p>
+            <div className="pt-2">
+              <button
+                onClick={handleCancelClick}
+                disabled={cancelLoading}
+                className="px-4 py-2 bg-red-600/20 hover:bg-red-600 border border-red-500/30 hover:border-red-500 text-red-400 hover:text-white disabled:bg-slate-700 disabled:text-slate-500 disabled:border-slate-600 text-xs font-bold rounded-xl transition cursor-pointer disabled:cursor-not-allowed"
+              >
+                {cancelLoading ? 'Canceling subscription...' : 'Cancel Subscription'}
+              </button>
+            </div>
+          </div>
+        )}
 
       </main>
     </div>

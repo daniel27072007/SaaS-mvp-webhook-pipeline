@@ -21,3 +21,17 @@ export const redirectToCheckout = async (priceId) => {
         throw new Error(errorMessage);
     }
 }
+
+/**
+ * Cancela a assinatura ativa do usuário no Stripe através do Backend.
+ */
+export const cancelUserSubscription = async () => {
+    try {
+        const response = await api.post('/api/payments/cancel')
+        return response.data
+    } catch (error) {
+        const errorMessage = error.response?.data?.error || error.message || "Unknown error when canceling the subscription.";
+        console.error("Error in the cancel subscription service:", errorMessage);
+        throw new Error(errorMessage);
+    }
+}
