@@ -51,6 +51,24 @@ export const checkout = async (req, res) => {
     }
 }
 
+export const cancelSubscription = async (req, res) => {
+    try {
+        const userId = req.userId
+        const databaseUser = await userModel.findById(userId)
+        if(!databaseUser){
+            return res.status(404).json({ error: "User not found." })
+        }
+        if(!databaseUser.stripeSubscriptionId){
+            return res.status(400).json({ error: "This user doesn't have an active subscription to cancel." })
+        }
+        await stripe.subscriptions.cancel(databaseUser.stripeSubscriptionId)
+        return res.status(200).json({ success: true, message: 'Subscription canceled with success.' })
+    } catch (error) {
+        console.error("Error in the cancellation process:", error)
+        return res.status(500).json({ error: "Internal Server Error.", message: error.message })
+    }
+}
+
 export const webhook = async (req, res) => {
     const endPointSecret = process.env.STRIPE_WEBHOOK_SECRET
     const sig = req.headers['stripe-signature']
