@@ -32,7 +32,6 @@ export const checkout = async (req, res) => {
         //if is the user dosent have a plan
         else{
             let purchasedPlan = 'normal';
-            console.log("Price recebido:", priceId, "Esperado Premium:", process.env.STRIPE_PREMIUM_PRICE)
             if (priceId === process.env.STRIPE_PREMIUM_PRICE) {
                 purchasedPlan = 'premium';
                 console.log("premium")
@@ -78,7 +77,8 @@ export const webhook = async (req, res) => {
                     "paymentCustomerId"
                 ])
                 if(!databaseUser){
-                    return res.status(400).json({ error: "User not found"}) //not 404 so stripe dosent think is a error 404 about him sending the req
+                    console.log(`Warning: Subscription ${stripeSubscriptionId} created, but the user was not found.`);
+                    break
                 }
                 databaseUser.subscription = userSubscription
                 databaseUser.subscriptionStatus = 'active'
@@ -88,6 +88,29 @@ export const webhook = async (req, res) => {
                 break
             }
             
+            case 'customer.subscription.updated': {
+                const subscription = event.data.object
+                const stripeSubscriptionId = subscription.id
+                const newPriceId = subscription.items.data[0].price.id
+                let updatedPlan = 'normal';
+                if (newPriceId === process.env.STRIPE_PREMIUM_PRICE) {
+                    updatedPlan = 'premium';
+                    console.log("premium")
+                }
+                const databaseUser = await userModel.findOne({ stripeSubscriptionId: stripeSubscriptionId }).select([
+                    "subscription",
+                    "subscriptionStatus"
+                ])
+                if(!databaseUser){
+                    console.log(`Warning: Subscription ${stripeSubscriptionId} updated, but the user was not found.`);
+                    break
+                }
+                databaseUser.subscription = updatedPlan
+                databaseUser.subscriptionStatus = 'active'
+                await databaseUser.save()
+                break
+            }
+
             case 'customer.subscription.deleted': {
                 const subscription = event.data.object;
                 const stripeSubscriptionId = subscription.id;
