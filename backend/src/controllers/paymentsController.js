@@ -13,20 +13,39 @@ export const checkout = async (req, res) => {
             });
         }
         const userId = req.userId
-        let purchasedPlan = 'normal';
-        console.log("Price recebido:", priceId, "Esperado Premium:", process.env.STRIPE_PREMIUM_PRICE)
-        if (priceId === process.env.STRIPE_PREMIUM_PRICE) {
-            purchasedPlan = 'premium';
-            console.log("premium")
+        const userData = await userModel.findById(userId)
+        if(!userData){
+            return res.status(404).json({ error: "User not found."})
         }
-        const session = await stripe.checkout.sessions.create({
-            mode: 'subscription',
-            line_items: [{price: priceId, quantity: 1}],
-            metadata: { userId : userId, userSubscription: purchasedPlan },
-            success_url: `http://localhost:5173/dashboard?success=true`,
-            cancel_url: `http://localhost:5173/dashboard?success=false`,
-        })
-        return res.status(200).json({ success: true, url: session.url});
+        //if the user is upgrading the plan
+        if(userData.stripeSubscriptionId){
+            const subscription = await stripe.subscriptions.retrieve(userData.stripeSubscriptionId)
+            await stripe.subscriptions.update(userData.stripeSubscriptionId, {
+                items: [{
+                    id: subscription.items.data[0].id,
+                    price: priceId
+                }],
+                proration_behavior: 'create_prorations'
+            })
+            return res.status(200).json({ success: true, url: 'http://localhost:5173/dashboard?success=true'});
+        }
+        //if is the user dosent have a plan
+        else{
+            let purchasedPlan = 'normal';
+            console.log("Price recebido:", priceId, "Esperado Premium:", process.env.STRIPE_PREMIUM_PRICE)
+            if (priceId === process.env.STRIPE_PREMIUM_PRICE) {
+                purchasedPlan = 'premium';
+                console.log("premium")
+            }
+            const session = await stripe.checkout.sessions.create({
+                mode: 'subscription',
+                line_items: [{price: priceId, quantity: 1}],
+                metadata: { userId : userId, userSubscription: purchasedPlan },
+                    success_url: `http://localhost:5173/dashboard?success=true`,
+                cancel_url: `http://localhost:5173/dashboard?success=false`,
+            })
+            return res.status(200).json({ success: true, url: session.url});
+        }
     } catch (error) {
         console.error("Error in the checkout process:", error);
         return res.status(500).json({ error: "Error: Internal Server Error." });
