@@ -9,11 +9,12 @@ export default function DashboardPage() {
     const { user, logout, refreshUserSubscription } = useAuth()
     const navigate = useNavigate()
 
-    const handlePremiumSelection = async () => {
+    const handlePlanUpgrade = async (priceId) => {
       try {
-        await redirectToCheckout('price_1UTPox1YFbGwh7Z0qaR2IfWB')
+        if (!priceId) return;
+        await redirectToCheckout(priceId)
       } catch (error) {
-        alert('Failed to start payment screen:' + error.message)
+        alert('Failed to start payment screen: ' + error.message)
       }
     }
 
@@ -253,10 +254,10 @@ export default function DashboardPage() {
                 Upgrade your subscription to unlock file pipelines and interactive data engines.
               </p>
               <button
-                onClick={() => navigate('/')}
-                className="px-4 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-purple-900/20 transition cursor-pointer"
+                onClick={() => handlePlanUpgrade('price_1UTPpB1YFbGwh7Z0EL4zrNsN')}
+                className="px-4 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition cursor-pointer"
               >
-                Upgrade your plan
+                Upgrade to Normal Plan
               </button>
             </div>
           ) : (
@@ -338,10 +339,10 @@ export default function DashboardPage() {
                   Unlock deep operational savings models, risk churn parameters, and tailored data guidance.
                 </p>
                 <button
-                  onClick={() => navigate('/')}
+                  onClick={() => handlePlanUpgrade('price_1UTPox1YFbGwh7Z0qaR2IfWB')}
                   className="px-4 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-purple-900/20 transition cursor-pointer"
                 >
-                  Upgrade your plan
+                  Upgrade to Premium Plan
                 </button>
               </div>
             </div>
