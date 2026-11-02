@@ -65,6 +65,15 @@ export default function DashboardPage() {
     const [aiLoading, setAiLoading] = useState(false);
 
     useEffect(() => {
+        // 1. Se o plano cair para 'none', limpa os dados antigos de relatórios e IA imediatamente
+        if (user?.subscription === 'none') {
+            setAiInsights(null);
+            setChartData(null); // Evita que o gráfico antigo reapareça do nada depois
+        }
+        // 2. Se cair de Premium para Normal, garante a limpeza estrita dos dados de IA
+        if (user?.subscription !== 'premium') {
+            setAiInsights(null);
+        }
         //default part
         const fecthSummary = async () => {
             try {
@@ -92,7 +101,7 @@ export default function DashboardPage() {
         //running the functions
         fecthSummary()
         fetchAiInsights()
-    }, [])
+    }, [user?.subscription])
 
     //analytics-reports part (since needs a button to work we make it a function so only runs if the user click on it, not automatic, even with a plan)
     const [chartData, setChartData] = useState(null)
