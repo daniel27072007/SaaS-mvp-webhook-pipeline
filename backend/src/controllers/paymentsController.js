@@ -38,6 +38,9 @@ export const checkout = async (req, res) => {
                 }],
                 proration_behavior: 'create_prorations'
             })
+            userData.subscription = requestedPlan
+            userData.subscriptionStatus = 'active'
+            await userData.save()
             return res.status(200).json({ success: true, url: 'http://localhost:5173/dashboard?success=true'});
         }
         //if is the user dosent have a plan
