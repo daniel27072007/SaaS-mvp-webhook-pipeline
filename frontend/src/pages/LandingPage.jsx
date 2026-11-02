@@ -60,8 +60,41 @@ export default function LandingPage() {
     }
   }
 
+  // Função auxiliar para calcular dinamicamente o estado e o texto do botão de cada plano
+  const getButtonState = (planName) => {
+    // Caso A: Usuário não está logado
+    if (!user) {
+      if (planName === 'None') return { text: 'Get Started', disabled: false };
+      if (planName === 'Normal') return { text: 'Subscribe Normal', disabled: false };
+      return { text: 'Go Premium', disabled: false };
+    }
+
+    const currentSubscription = user.subscription; // 'none', 'normal' ou 'premium'
+
+    // Caso B: Logado sem plano ('none')
+    if (currentSubscription === 'none') {
+      if (planName === 'None') return { text: 'Current Plan', disabled: true };
+      return { text: 'Upgrade', disabled: false };
+    }
+
+    // Caso C: Logado no plano 'normal'
+    if (currentSubscription === 'normal') {
+      if (planName === 'None') return { text: 'Unavailable', disabled: true };
+      if (planName === 'Normal') return { text: 'Current Plan', disabled: true };
+      return { text: 'Upgrade', disabled: false };
+    }
+
+    // Caso D: Logado no plano 'premium'
+    if (currentSubscription === 'premium') {
+      if (planName === 'Premium') return { text: 'Current Plan', disabled: true };
+      return { text: 'Unavailable', disabled: true };
+    }
+
+    return { text: 'Select Plan', disabled: false };
+  };
+
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans pt-20">
+    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans pt-20 relative">
       {/* Top Navbar */}
       <AuthHeader/>
 
@@ -77,53 +110,59 @@ export default function LandingPage() {
           Choose the ideal plan for your needs and unlock advanced reports and automatic workflows driven by artificial intelligence.
         </p>
 
-        {/* Pricing Cards Grid (Requirement 1 from Image) */}
+        {/* Pricing Cards Grid */}
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto text-left">
-          {plans.map((plan) => (
-            <div
-              key={plan.name}
-              className={`relative bg-slate-800/50 p-8 rounded-2xl border transition-all hover:scale-[1.02] ${
-                plan.popular ? 'border-cyan-500 shadow-lg shadow-cyan-500/10' : 'border-slate-700'
-              }`}
-            >
-              {plan.popular && (
-                <span className="absolute -top-3 right-6 bg-cyan-500 text-slate-950 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                  Most Popular
-                </span>
-              )}
-              
-              <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-              <p className="text-slate-400 text-sm mb-6 min-h-[40px]">{plan.description}</p>
-              <div className="text-3xl font-extrabold mb-6 text-cyan-400">{plan.price}</div>
-
-              {/* Feature List (Aligned with backend RBAC checks) */}
-              <ul className="space-y-3 mb-8 text-sm text-slate-300">
-                {plan.features.map((feature, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <span className="text-cyan-400 font-bold">✓</span>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-
-              {/* Call to Action Button */}
-              <button
-                onClick={() => handlePlanSelection(plan)}
-                className={`w-full text-center py-3 rounded-xl font-medium transition cursor-pointer ${
-                  plan.popular
-                    ? 'bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold'
-                    : 'bg-slate-700 hover:bg-slate-600 text-slate-100'
-                }`}
+          {plans.map((plan) => {
+            // Corrigido para passar plan.name em vez de plan.id que não existe no array original
+            const { text, disabled } = getButtonState(plan.name);
+            return (
+              <div
+                key={plan.name}
+                className={`relative bg-slate-800/50 p-8 rounded-2xl border transition-all hover:scale-[1.02] flex flex-col justify-between ${
+                  plan.popular ? 'border-cyan-500 shadow-lg shadow-cyan-500/10' : 'border-slate-700'
+                } ${disabled ? 'opacity-70' : ''}`}
               >
-                {plan.buttonText}
-              </button>
-            </div>
-          ))}
+                {plan.popular && (
+                  <span className="absolute -top-3 right-6 bg-cyan-500 text-slate-950 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                    Most Popular
+                  </span>
+                )}
+                
+                <div>
+                  <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+                  <p className="text-slate-400 text-sm mb-6 min-h-[40px]">{plan.description}</p>
+                  <div className="text-3xl font-extrabold mb-6 text-cyan-400">{plan.price}</div>
+
+                  {/* Feature List */}
+                  <ul className="space-y-3 mb-8 text-sm text-slate-300">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="text-cyan-400 font-bold">✓</span>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Call to Action Button Inteligente */}
+                <button
+                  onClick={() => handlePlanSelection(plan)}
+                  disabled={disabled}
+                  className={`w-full text-center py-3 rounded-xl font-medium transition ${
+                    disabled
+                      ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
+                      : plan.popular
+                      ? 'bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold cursor-pointer'
+                      : 'bg-slate-700 hover:bg-slate-600 text-slate-100 cursor-pointer'
+                  }`}
+                >
+                  {text}
+                </button>
+              </div>
+            );
+          })}
         </div>
       </main>
     </div>
   );
 }
-
-//this is working great but needs to redirect the client if he have a token directly to the checkout page instead of the register so it can buy the service
-//and if the client dont have a token put him at login and then if he dosent have one, then direct to register
