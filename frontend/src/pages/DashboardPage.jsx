@@ -28,9 +28,25 @@ export default function DashboardPage() {
     useEffect(() => {
       const handlePaymentSuccess = async () => {
         if(isSuccess){
-          setPaymentFeedback('Payment completed, your plan was updated.')
+          setPaymentFeedback('Payment completed! Syncing your premium features...');
           setFeedbackType('success')
-          await refreshUserSubscription()
+
+          let attempts = 0
+          const maxAttempts = 5
+          const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+          const initialPlan = user?.subscription
+          while (attempts < maxAttempts) {
+            await delay(2000)
+            const updatedPlan = await refreshUserSubscription()
+            if (updatedPlan !== initialPlan) {
+              setPaymentFeedback('Payment completed, your plan was updated successfully.');
+              break;
+            }
+            attempts ++
+          }
+          if(attempts === maxAttempts){
+            setPaymentFeedback('Your payment is confirmed, but your profile is taking a moment to sync. Please refresh in a few moments.')
+          }
           setSearchParams({}, { replace: true })
         }
         if(isCanceled){
@@ -40,7 +56,7 @@ export default function DashboardPage() {
         }
       }
       handlePaymentSuccess()
-    }, [isSuccess, isCanceled])
+    }, [isSuccess, isCanceled, user?.subscription])
 
     //dashboard-summary and premium feature (they are togheter becuase they load when the screen is rendering)
     const [summary, setSummary] = useState(null)
