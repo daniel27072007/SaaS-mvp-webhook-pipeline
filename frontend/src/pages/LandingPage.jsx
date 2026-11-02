@@ -1,6 +1,7 @@
 import { useAuth } from '../context/AuthContext'
 import { Link, useNavigate } from 'react-router-dom';
 import { redirectToCheckout } from '../services/payments';
+import AuthHeader from '../components/AuthHeader';
 
 export default function LandingPage() {
   const { user } = useAuth()
@@ -60,23 +61,9 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans">
+    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans pt-20">
       {/* Top Navbar */}
-      <header className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center border-b border-slate-800">
-        <div className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-          <Link to="/">
-            SaaS MVP
-          </Link>
-        </div>
-        <div className="space-x-4">
-          <Link to="/login" className="px-4 py-2 text-sm font-medium hover:text-cyan-400 transition">
-            Sign In
-          </Link>
-          <Link to="/register" className="px-4 py-2 text-sm font-medium bg-cyan-600 hover:bg-cyan-500 rounded-md transition text-slate-950 font-semibold">
-            Get Started
-          </Link>
-        </div>
-      </header>
+      <AuthHeader/>
 
       {/* Hero Section */}
       <main className="max-w-7xl mx-auto px-6 py-16 text-center">
