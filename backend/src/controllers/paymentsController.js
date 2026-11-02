@@ -12,10 +12,21 @@ export const checkout = async (req, res) => {
                 error: "priceId is required to use checkout." 
             });
         }
+        //we will use this to check if the user already have that plan and its active and its trying to buy again
+        let requestedPlan = 'normal';
+        if (priceId === process.env.STRIPE_PREMIUM_PRICE) {
+            requestedPlan = 'premium';
+        }
         const userId = req.userId
         const userData = await userModel.findById(userId)
         if(!userData){
             return res.status(404).json({ error: "User not found."})
+        }
+        if(userData.subscription === requestedPlan && userData.subscriptionStatus === 'active'){
+            return res.status(400).json({ 
+                error: "Bad Request", 
+                message: `You already have this as a active plan: ${requestedPlan}.` 
+            });
         }
         //if the user is upgrading the plan
         if(userData.stripeSubscriptionId){
