@@ -1,10 +1,11 @@
 import { useAuth } from '../context/AuthContext'
 import { Link, useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 import { redirectToCheckout } from '../services/payments';
 import AuthHeader from '../components/AuthHeader';
 
 export default function LandingPage() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const navigate = useNavigate()
 
   const plans = [
@@ -48,6 +49,21 @@ export default function LandingPage() {
     }
     //Case 2: user is loged
     if(user){
+      const token = localStorage.getItem('access-token')
+      if(token){
+        try {
+          const decoded = jwtDecode(token)
+          const currentTime = new Date.now() / 1000
+          if(decoded.exp && currentTime >= decoded.exp){
+            alert('Your session has expired. Log you account again in login to finish the subscription')
+            logout()
+            navigate('/login', { state: { selectedPriceId: plan.priceId } });
+            return
+          }
+        } catch (error) {
+          console.error('Error when trying to decode the expired token: ', error)
+        }
+      }
       try {
         await redirectToCheckout(plan.priceId)
       } catch (error) {
