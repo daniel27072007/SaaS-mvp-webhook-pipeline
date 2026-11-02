@@ -53,16 +53,16 @@ export default function LoginPage() {
             setSuccessMessage('Authentication successful! Redirecting...');
             setError('');
             setTimeout(async () => {
-              if(selectedPriceId){
+              if (selectedPriceId) {
                 try {
-                  await redirectToCheckout(selectedPriceId)
+                  await redirectToCheckout(selectedPriceId);
+                  return
                 } catch (error) {
-                  setError(`Login made with success but was unable to redirect to checkout: ${error.message}`);
-                  navigate('/dashboard'); 
+                  setError(`Erro: ${error.message}`);
+                  navigate('/dashboard'); // Só vai para o dashboard se o Stripe falhar
                 }
-              }
-              else{
-                navigate('/dashboard')
+              } else {
+                navigate('/dashboard'); // Só vai para o dashboard se não escolheu plano
               }
             },1500)
         }
