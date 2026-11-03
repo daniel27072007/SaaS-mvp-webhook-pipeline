@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from "../context/AuthContext";
-import { replace, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from '../services/api.js';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { redirectToCheckout } from '../services/payments.js';

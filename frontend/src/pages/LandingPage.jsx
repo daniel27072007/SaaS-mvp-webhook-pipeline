@@ -72,7 +72,7 @@ export default function LandingPage() {
       if(token){
         try {
           const decoded = jwtDecode(token)
-          const currentTime = new Date.now() / 1000
+          const currentTime = Date.now() / 1000
           if(decoded.exp && currentTime >= decoded.exp){
             alert('Your session has expired. Log you account again in login to finish the subscription')
             logout()

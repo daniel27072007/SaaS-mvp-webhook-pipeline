@@ -75,7 +75,13 @@ export const cancelSubscription = async (req, res) => {
         if(!databaseUser.stripeSubscriptionId){
             return res.status(400).json({ error: "This user doesn't have an active subscription to cancel." })
         }
+        //sends the stripe to cancel the plan in the webhook
         await stripe.subscriptions.cancel(databaseUser.stripeSubscriptionId)
+        //already cancel the plan just for safety
+        databaseUser.subscription = 'none';
+        databaseUser.subscriptionStatus = 'none';
+        databaseUser.stripeSubscriptionId = null;
+        await databaseUser.save();
         return res.status(200).json({ success: true, message: 'Subscription canceled with success.' })
     } catch (error) {
         console.error("Error in the cancellation process:", error)
