@@ -8,7 +8,7 @@ import paymentsRouter from './routes/payments.routes.js'
 const app = express()
 
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: ['http://localhost:5173', 'https://saas-mvp-webhook-pipeline.vercel.app'],
     credentials: true
 }))
 
