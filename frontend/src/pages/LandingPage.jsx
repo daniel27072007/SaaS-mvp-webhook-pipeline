@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useAuth } from '../context/AuthContext'
 import { Link, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
@@ -5,8 +6,26 @@ import { redirectToCheckout } from '../services/payments';
 import AuthHeader from '../components/AuthHeader';
 
 export default function LandingPage() {
-  const { user, logout } = useAuth()
+  const { user, logout, refreshUserSubscription, loading } = useAuth()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    if (user) {
+      refreshUserSubscription();
+    }
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-cyan-400 flex items-center justify-center font-medium">
+        <div className="flex flex-col items-center gap-3">
+          {/* Um efeito simples de pulso ou rotação para o loading */}
+          <div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+          <span>Sincronizando portal corporativo...</span>
+        </div>
+      </div>
+    );
+  }
 
   const plans = [
     {
